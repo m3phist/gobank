@@ -3,5 +3,5 @@ package main
 import "fmt"
 
 func main() {
-	fmt.Println("Hello from GoBank")
+	fmt.Println("Hello from GoBank server")
 }
