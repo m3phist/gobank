@@ -23,3 +23,6 @@ m_up:
 m_down:
 	# run migrate down
 	migrate -path db/migrations -database "postgres://root:9uN9H9FMyhLtgkLi@localhost:5432/gobank_db?sslmode=disable" down
+
+sqlc:
+	sqlc generate
