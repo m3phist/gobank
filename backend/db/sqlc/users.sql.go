@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -32,6 +33,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const deleteAllUsers = `-- name: DeleteAllUsers :exec
+DELETE FROM users
+`
+
+func (q *Queries) DeleteAllUsers(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteAllUsers)
+	return err
 }
 
 const deleteUser = `-- name: DeleteUser :exec
@@ -116,16 +126,22 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 }
 
 const updateUserPassword = `-- name: UpdateUserPassword :one
-UPDATE users SET hashed_password = $1 WHERE id = $2 RETURNING id, email, hashed_password, created_at, updated_at
+UPDATE users
+SET
+    hashed_password = $1,
+    updated_at = $2
+WHERE id = $3
+RETURNING id, email, hashed_password, created_at, updated_at
 `
 
 type UpdateUserPasswordParams struct {
-	HashedPassword string `json:"hashed_password"`
-	ID             int64  `json:"id"`
+	HashedPassword string    `json:"hashed_password"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	ID             int64     `json:"id"`
 }
 
 func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, updateUserPassword, arg.HashedPassword, arg.ID)
+	row := q.db.QueryRowContext(ctx, updateUserPassword, arg.HashedPassword, arg.UpdatedAt, arg.ID)
 	var i User
 	err := row.Scan(
 		&i.ID,
