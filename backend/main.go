@@ -2,28 +2,39 @@ package main
 
 import (
 	"log"
-	"os"
-	"strconv"
 
-	"github.com/joho/godotenv"
 	"github.com/m3phist/gobank/backend/api"
+	"github.com/m3phist/gobank/backend/utils"
 )
 
 func main() {
-	err := godotenv.Load()
+	// method 1: using dotenv()
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
+
+	// portString := os.Getenv("PORT")
+	// if portString == "" {
+	// 	log.Fatal("PORT is not found in the environment variable")
+	// }
+
+	// port, err := strconv.Atoi(portString)
+	// if err != nil {
+	// 	log.Fatalf("Error converting PORT to integer: %v", err)
+	// }
+
+	// method 2: using viper
+	config, err := utils.LoadConfig(".")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading config: %v", err)
 	}
 
-	portString := os.Getenv("PORT")
-	if portString == "" {
-		log.Fatal("PORT is not found in the environment variable")
-	}
-
-	port, err := strconv.Atoi(portString)
+	port := config.Port
 	if err != nil {
-		log.Fatalf("Error converting PORT to integer: %v", err)
+		log.Fatalf("PORT is not found in the env variable: %v", err)
 	}
 
-	api.NewServer(port)
+	server := api.NewServer(".")
+	server.Start(port)
 }

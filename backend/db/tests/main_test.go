@@ -22,7 +22,6 @@ func TestMain(m *testing.M) {
 	conn, err := sql.Open(config.DB_driver, config.DB_source)
 	if err != nil {
 		log.Fatal("Could not connect to database", err)
-
 	}
 
 	testQuery = db.New(conn)

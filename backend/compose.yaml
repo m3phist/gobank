@@ -8,6 +8,17 @@ services:
     ports:
       - '5432:5432'
 
+  postgres-live:
+    container_name: db_live
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=9uN9H9FMyhLtgkLi
+    # volumes:
+    #   - ./gobank_data:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+
   # pgadmin:
   #   image: dpage/pgadmin4
   #   environment:
