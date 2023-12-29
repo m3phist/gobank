@@ -13,7 +13,10 @@ import (
 type Server struct {
 	queries *db.Queries
 	router  *gin.Engine
+	config  *utils.Config
 }
+
+var tokenController *utils.JWTToken
 
 func NewServer(envPath string) *Server {
 	config, err := utils.LoadConfig(envPath)
@@ -26,12 +29,15 @@ func NewServer(envPath string) *Server {
 		panic(fmt.Sprintf("Could not connect to database: %v", err))
 	}
 
+	tokenController = utils.NewJWTToken(config)
+
 	q := db.New(conn)
 	g := gin.Default()
 
 	return &Server{
 		queries: q,
 		router:  g,
+		config:  config,
 	}
 }
 

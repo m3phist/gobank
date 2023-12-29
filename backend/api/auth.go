@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
+	db "github.com/m3phist/gobank/backend/db/sqlc"
 	"github.com/m3phist/gobank/backend/utils"
 )
 
@@ -18,6 +20,46 @@ func (a Auth) router(server *Server) {
 
 	serverGroup := server.router.Group("/auth")
 	serverGroup.POST("login", a.login)
+	serverGroup.POST("register", a.register)
+}
+
+type UserParams struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
+func (a *Auth) register(c *gin.Context) {
+	var user UserParams
+
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	hashedPassword, err := utils.GenerateHashPassword(user.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	arg := db.CreateUserParams{
+		Email:          user.Email,
+		HashedPassword: hashedPassword,
+	}
+
+	newUser, err := a.server.queries.CreateUser(context.Background(), arg)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			if pgErr.Code == "23505" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "user already exists"})
+				return
+			}
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, UserResponse{}.toUserResponse(&newUser))
+
 }
 
 func (a Auth) login(c *gin.Context) {
@@ -38,9 +80,17 @@ func (a Auth) login(c *gin.Context) {
 		return
 	}
 
-	if err := utils.VerifyPassword(user.Password, dbUser.HashedPassword); err == nil {
+	if err := utils.VerifyPassword(user.Password, dbUser.HashedPassword); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Incorrect email or password"})
 		return
 	}
+
+	token, err := tokenController.CreateToken(dbUser.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 
 }
