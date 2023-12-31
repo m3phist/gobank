@@ -15,6 +15,11 @@ import {
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import Link from 'next/link';
+import axios from 'axios';
+import { useToast } from './ui/use-toast';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { authUrl } from '@/utils/network';
 
 const formSchema = z.object({
   emailAddress: z.string().email(),
@@ -22,6 +27,10 @@ const formSchema = z.object({
 });
 
 const Login = () => {
+  const { toast } = useToast();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -31,7 +40,39 @@ const Login = () => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log({ values });
+    const { emailAddress, password } = values;
+    let arg = {
+      email: emailAddress,
+      password: password,
+    };
+
+    console.log(arg);
+    setIsLoading(true);
+    console.log(authUrl.login);
+
+    axios
+      .post(authUrl.login, arg)
+      .then((response) => {
+        const { token } = response.data;
+        console.log(token);
+        localStorage.setItem('token', token);
+
+        toast({
+          variant: 'success',
+          description: 'You are now logged in.',
+        });
+
+        router.push('/');
+      })
+      .catch((error) => {
+        toast({
+          variant: 'destructive',
+          description: 'Something went wrong.',
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -82,7 +123,9 @@ const Login = () => {
               sign up
             </Link>
           </span>
-          <Button type="submit">Continue</Button>
+          <Button type="submit" disabled={isLoading}>
+            Continue
+          </Button>
         </form>
       </Form>
     </div>
