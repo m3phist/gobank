@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	db "github.com/m3phist/gobank/backend/db/sqlc"
@@ -33,6 +34,8 @@ func NewServer(envPath string) *Server {
 
 	q := db.New(conn)
 	g := gin.Default()
+
+	g.Use(cors.Default())
 
 	return &Server{
 		queries: q,
