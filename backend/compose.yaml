@@ -14,8 +14,8 @@ services:
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=9uN9H9FMyhLtgkLi
-    # volumes:
-    #   - ./gobank_data:/var/lib/postgresql/data
+    volumes:
+      - ../postgres/gobank_data:/var/lib/postgresql/data
     ports:
       - '5433:5432'
 

@@ -1,4 +1,4 @@
-c_migration:
+c_m:
 	# create a new migration
 	migrate create -ext sql -dir db/migrations -seq $(name)
 
@@ -25,8 +25,8 @@ m_up:
 
 m_down:
 	# run migrate down
-	migrate -path db/migrations -database "postgres://root:9uN9H9FMyhLtgkLi@localhost:5432/gobank_db?sslmode=disable" down
-	migrate -path db/migrations -database "postgres://root:9uN9H9FMyhLtgkLi@localhost:5433/gobank_db?sslmode=disable" down
+	migrate -path db/migrations -database "postgres://root:9uN9H9FMyhLtgkLi@localhost:5432/gobank_db?sslmode=disable" down $(count)
+	migrate -path db/migrations -database "postgres://root:9uN9H9FMyhLtgkLi@localhost:5433/gobank_db?sslmode=disable" down $(count)
 
 sqlc:
 	sqlc generate
